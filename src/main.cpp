@@ -13,25 +13,27 @@ void callback(char* topic, byte* payload, unsigned int length) {
 void setup(void) {
     pinMode(A0, INPUT);
     pinMode(POWER_MOISTURE_SENSOR, OUTPUT);
+
     Serial.begin(115200);
+    Serial.setTimeout(2000);
     setupWifi();
 
-    if (psClient.connect("arduinoClient", USERNAME, KEY)) {
-        Serial.println("Connected to MQTT");
-    } else {
-        Serial.println("Not connected to MQTT");
+    moisture = readSensor();
+    Serial.println(moisture);
+
+    if(connectToMQTT()) {
+        publish();
+        psClient.loop();
     }
+
+    Serial.println("Going into deep sleep for a while");
+    ESP.deepSleep(SLEEP_LONG);
 }
 
-uint16_t readSensor(unsigned long interval) {
-    unsigned long currentMillis = millis();
+void loop(void) {
+}
 
-    if ((unsigned long)(currentMillis - previousMillisRead) <= interval) {
-      return moisture;
-    }
-
-    previousMillisRead = currentMillis;
-
+uint16_t readSensor() {
     digitalWrite(POWER_MOISTURE_SENSOR, HIGH);
     delay(500);
     uint16_t reading = analogRead(A0);
@@ -40,29 +42,25 @@ uint16_t readSensor(unsigned long interval) {
     return reading;
 }
 
-void loop(void) {
-    moisture = readSensor(5000);
-    publish(5000);
-    Serial.println(moisture);
-    psClient.loop();
-}
-
-void publish(unsigned long interval) {
-    unsigned long currentMillis = millis();
-
-    if ((unsigned long)(currentMillis - previousMillisPublish) <= interval) {
-      return;
-    }
-
-    previousMillisPublish = currentMillis;
-
+void publish() {
     char cstr[16];
     itoa(moisture, cstr, 10);
-    psClient.publish("cactus/moisture", cstr);
+    psClient.publish("cactus/moisture", cstr, true);
+}
+
+boolean connectToMQTT() {
+    if (psClient.connect("arduinoClient", USERNAME, KEY)) {
+        Serial.println("Connected to MQTT");
+        return true;
+    } else {
+        Serial.println("Not connected to MQTT");
+        return false;
+    }
 }
 
 void setupWifi() {
     delay(100);
+    unsigned long wifiConnectStart = millis();
 
     Serial.println();
     Serial.println();
@@ -74,6 +72,10 @@ void setupWifi() {
     while (WiFi.status() != WL_CONNECTED) {
         delay(500);
         Serial.print(".");
+        if (millis() - wifiConnectStart > 15000) {
+          Serial.println("Failed to connect to WiFi");
+          return;
+        }
     }
 
     Serial.println("");
