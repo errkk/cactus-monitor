@@ -3,8 +3,6 @@
 const char * HOST = "node-red.errkk.co";
 const uint16_t PORT = 8888;
 
-unsigned long previousMillisPublish = 0;
-unsigned long previousMillisRead = 0;
 uint16_t moisture;
 
 void callback(char* topic, byte* payload, unsigned int length) {

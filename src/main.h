@@ -1,6 +1,5 @@
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
-#include <HttpClient.h>
 
 #include "secrets.cpp"
 
