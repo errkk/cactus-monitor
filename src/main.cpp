@@ -1,7 +1,7 @@
 #include "main.h"
 
-WiFiClient wifiClient;
-PubSubClient psClient(SERVER, SERVERPORT, callback, wifiClient);
+const char * HOST = "node-red.errkk.co";
+const uint16_t PORT = 8888;
 
 unsigned long previousMillisPublish = 0;
 unsigned long previousMillisRead = 0;
@@ -17,20 +17,13 @@ void setup(void) {
     Serial.begin(115200);
     Serial.setTimeout(2000);
     setupWifi();
-
-    moisture = readSensor();
-    Serial.println(moisture);
-
-    if(connectToMQTT()) {
-        publish();
-        psClient.loop();
-    }
-
-    Serial.println("Going into deep sleep for a while");
-    ESP.deepSleep(SLEEP_LONG);
 }
 
 void loop(void) {
+    moisture = readSensor();
+
+    publish();
+    delay(5000);
 }
 
 uint16_t readSensor() {
@@ -43,19 +36,22 @@ uint16_t readSensor() {
 }
 
 void publish() {
-    char cstr[16];
-    itoa(moisture, cstr, 10);
-    psClient.publish("cactus/moisture", cstr, true);
-}
 
-boolean connectToMQTT() {
-    if (psClient.connect("arduinoClient", USERNAME, KEY)) {
-        Serial.println("Connected to MQTT");
-        return true;
-    } else {
-        Serial.println("Not connected to MQTT");
-        return false;
+    WiFiClient client;
+
+    if (!client.connect(HOST, PORT)) {
+        Serial.println("Couldn't connect");
+        return;
     }
+    Serial.print("Sending: ");
+    Serial.println(moisture);
+    client.print(moisture);
+    client.stop();
+
+    delay(1000);
+
+    Serial.println("Going into deep sleep for a while");
+    ESP.deepSleep(SLEEP_LONG);
 }
 
 void setupWifi() {

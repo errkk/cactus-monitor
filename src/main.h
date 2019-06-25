@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
-#include <PubSubClient.h>
+#include <HttpClient.h>
 
 #include "secrets.cpp"
 
@@ -12,6 +12,4 @@ uint16_t readSensor(void);
 void setup(void);
 void loop(void);
 void setupWifi(void);
-void callback(char* topic, byte* payload, unsigned int length);
 void publish();
-boolean connectToMQTT();
