@@ -38,6 +38,9 @@ void publish() {
 
     if (!client.connect(HOST, PORT)) {
         Serial.println("Couldn't connect");
+
+        Serial.println("Snoozing for a restart");
+        ESP.deepSleep(SLEEP_SHORT);
         return;
     }
     Serial.print("Sending: ");
