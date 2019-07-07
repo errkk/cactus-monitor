@@ -5,9 +5,6 @@ const uint16_t PORT = 8888;
 
 uint16_t reading;
 
-void callback(char* topic, byte* payload, unsigned int length) {
-}
-
 void setup(void) {
     pinMode(A0, INPUT);
     Serial.begin(115200);
@@ -29,7 +26,6 @@ uint16_t readSensor() {
     Serial.print(ua/1000.0);
     Serial.print(" ADC: ");
     Serial.println(reading);
-    delay(100);
     return reading;
 }
 
@@ -38,9 +34,9 @@ void publish() {
 
     if (!client.connect(HOST, PORT)) {
         Serial.println("Couldn't connect");
-
-        Serial.println("Snoozing for a restart");
-        ESP.deepSleep(SLEEP_SHORT);
+        delay(RESTART_DELAY);
+        Serial.println("Restarting");
+        ESP.restart();
         return;
     }
     Serial.print("Sending: ");
@@ -69,8 +65,11 @@ void setupWifi() {
         delay(500);
         Serial.print(".");
         if (millis() - wifiConnectStart > 15000) {
-          Serial.println("Failed to connect to WiFi");
-          return;
+            Serial.println("Failed to connect to WiFi");
+            delay(RESTART_DELAY);
+            Serial.println("Restarting");
+            ESP.restart();
+            return;
         }
     }
 
