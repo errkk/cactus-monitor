@@ -3,38 +3,37 @@
 const char * HOST = "node-red.errkk.co";
 const uint16_t PORT = 8888;
 
-uint16_t moisture;
+uint16_t reading;
 
 void callback(char* topic, byte* payload, unsigned int length) {
 }
 
 void setup(void) {
     pinMode(A0, INPUT);
-    pinMode(POWER_MOISTURE_SENSOR, OUTPUT);
-
     Serial.begin(115200);
     Serial.setTimeout(2000);
     setupWifi();
 }
 
 void loop(void) {
-    moisture = readSensor();
+    reading = readSensor();
 
     publish();
     delay(5000);
 }
 
 uint16_t readSensor() {
-    digitalWrite(POWER_MOISTURE_SENSOR, HIGH);
-    delay(500);
     uint16_t reading = analogRead(A0);
-    delay(500);
-    digitalWrite(POWER_MOISTURE_SENSOR, LOW);
+    long ua = map(reading, 0, 1024, 0, 18500);
+    Serial.print("Ma: ");
+    Serial.print(ua/1000.0);
+    Serial.print(" ADC: ");
+    Serial.println(reading);
+    delay(100);
     return reading;
 }
 
 void publish() {
-
     WiFiClient client;
 
     if (!client.connect(HOST, PORT)) {
@@ -42,8 +41,8 @@ void publish() {
         return;
     }
     Serial.print("Sending: ");
-    Serial.println(moisture);
-    client.print(moisture);
+    Serial.println(reading);
+    client.print(reading);
     client.stop();
 
     delay(1000);

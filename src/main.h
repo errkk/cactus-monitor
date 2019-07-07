@@ -3,7 +3,6 @@
 
 #include "secrets.cpp"
 
-#define POWER_MOISTURE_SENSOR 15
 #define SLEEP_LONG 300e6
 #define SLEEP_SHORT 5e6
 
