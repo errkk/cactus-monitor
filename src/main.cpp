@@ -1,61 +1,57 @@
 #include "main.h"
 
-WiFiClient wifiClient;
-PubSubClient psClient(SERVER, SERVERPORT, callback, wifiClient);
+const char * HOST = "node-red.errkk.co";
+const uint16_t PORT = 8888;
 
-unsigned long previousMillisPublish = 0;
-unsigned long previousMillisRead = 0;
-uint16_t moisture;
+uint16_t reading;
 
 void callback(char* topic, byte* payload, unsigned int length) {
 }
 
 void setup(void) {
     pinMode(A0, INPUT);
-    pinMode(POWER_MOISTURE_SENSOR, OUTPUT);
-
     Serial.begin(115200);
     Serial.setTimeout(2000);
     setupWifi();
-
-    moisture = readSensor();
-    Serial.println(moisture);
-
-    if(connectToMQTT()) {
-        publish();
-        psClient.loop();
-    }
-
-    Serial.println("Going into deep sleep for a while");
-    ESP.deepSleep(SLEEP_LONG);
 }
 
 void loop(void) {
+    reading = readSensor();
+
+    publish();
+    delay(5000);
 }
 
 uint16_t readSensor() {
-    digitalWrite(POWER_MOISTURE_SENSOR, HIGH);
-    delay(500);
     uint16_t reading = analogRead(A0);
-    delay(500);
-    digitalWrite(POWER_MOISTURE_SENSOR, LOW);
+    long ua = map(reading, 0, 1024, 0, 18500);
+    Serial.print("Ma: ");
+    Serial.print(ua/1000.0);
+    Serial.print(" ADC: ");
+    Serial.println(reading);
+    delay(100);
     return reading;
 }
 
 void publish() {
-    char cstr[16];
-    itoa(moisture, cstr, 10);
-    psClient.publish("cactus/moisture", cstr, true);
-}
+    WiFiClient client;
 
-boolean connectToMQTT() {
-    if (psClient.connect("arduinoClient", USERNAME, KEY)) {
-        Serial.println("Connected to MQTT");
-        return true;
-    } else {
-        Serial.println("Not connected to MQTT");
-        return false;
+    if (!client.connect(HOST, PORT)) {
+        Serial.println("Couldn't connect");
+
+        Serial.println("Snoozing for a restart");
+        ESP.deepSleep(SLEEP_SHORT);
+        return;
     }
+    Serial.print("Sending: ");
+    Serial.println(reading);
+    client.print(reading);
+    client.stop();
+
+    delay(1000);
+
+    Serial.println("Going into deep sleep for a while");
+    ESP.deepSleep(SLEEP_LONG);
 }
 
 void setupWifi() {
