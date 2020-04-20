@@ -1,7 +1,5 @@
 # 🧪 Chlorine monitor
 
-Push both buttons at once when booting to get it into bootloader mode.
-If that's working the little red light will stay on.
 
 
 ## 📍Pins
@@ -24,6 +22,42 @@ Don't forget to populate `secrets.cpp` for WIFI deedts see example.
 
 Chlorine range is 0 - 4 ppm for 4-20ma.
 The resistor in here is about 51.6Ω. Full range of ADC is 1024 when it's getting 1 volt. This is 18.5ma so the ranged is mapped to that.
+
+## 👨‍🌾 Uploading firmware
+1. Connect up the wires, TX -> RX and RX -> TX.
+2. Make sure the voltage on the serial adapter is 3.3v or it will fuck shit up.
+3. Before plugging it in, push both buttons on the board at once when booting to get it into bootloader mode.
+  If that's working the little red light will stay on.
+5. Upload the firmware with the PIO command
+
+```sh
+pio run --target upload
+```
+
+You can see what it's doing with the serial monitor.
+
+```sh
+pio device monitor
+```
+
+## 🥣 Serial port
+It might not be able to find the serial port, to see what ports are available run this:
+
+```sh
+pio device list
+```
+Which should show something that sounds like "usbserial"
+```
+/dev/cu.Bluetooth-Incoming-Port
+-------------------------------
+Hardware ID: n/a
+Description: n/a
+
+/dev/cu.usbserial
+-------------------------------
+Hardware ID: n/a
+Description: n/a
+```
 
 ## 🔋 Circuit
 ```
